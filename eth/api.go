@@ -963,15 +963,13 @@ func (s *PublicTransactionPoolAPI) subscriptionLoop() {
 	for event := range sub.Chan() {
 		tx := event.Data.(core.TxPreEvent)
 		if from, err := tx.Tx.FromFrontier(); err == nil {
-			if s.am.HasAddress(from) {
-				s.muPendingTxSubs.Lock()
-				for id, sub := range s.pendingTxSubs {
-					if sub.Notify(tx.Tx.Hash()) == rpc.ErrNotificationNotFound {
-						delete(s.pendingTxSubs, id)
-					}
+			s.muPendingTxSubs.Lock()
+			for id, sub := range s.pendingTxSubs {
+				if sub.Notify(tx.Tx.Hash()) == rpc.ErrNotificationNotFound {
+					delete(s.pendingTxSubs, id)
 				}
-				s.muPendingTxSubs.Unlock()
 			}
+			s.muPendingTxSubs.Unlock()
 		}
 	}
 }
